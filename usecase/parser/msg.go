@@ -182,7 +182,40 @@ func ParseMsgToCommands(
 						Amount:              amount,
 					},
 				))
+			} else if msg["@type"] == "/cosmos.staking.v1beta1.MsgCreateValidator" {
+				amountValue, _ := msg["amount"].(map[string]interface{})
+				amount := coin.MustNewCoinFromString(amountValue["amount"].(string))
+
+				commissionrates := model.CommissionRates{
+					Rate:          "",
+					MaxRate:       "",
+					MaxChangeRate: "",
+				}
+
+				commands = append(commands, command_usecase.NewCreateMsgCreateValidator(
+					msgCommonParams,
+
+					model.MsgCreateValidatorParams{
+						CommissionRates:  commissionrates,
+						DelegatorAddress: msg["validator_src_address"].(string),
+						ValidatorAddress: msg["validator_dst_address"].(string),
+						PubKey:           msg["pubkey"].(string),
+						Amount:           amount,
+					},
+				))
+			} else if msg["@type"] == "/cosmos.staking.v1beta1.MsgEditValidator" {
+				commands = append(commands, command_usecase.NewCreateMsgEditValidator(
+					msgCommonParams,
+
+					model.MsgEditValidatorParams{
+
+						ValidatorAddress:  msg["validator_address"].(string),
+						CommissionRate:    msg["commission_rate"].(string),
+						MinSelfDelegation: msg["min_self_delegation"].(string),
+					},
+				))
 			}
+
 		}
 	}
 

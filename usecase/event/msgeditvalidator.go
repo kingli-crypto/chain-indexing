@@ -3,7 +3,6 @@ package event
 import (
 	"bytes"
 
-	"github.com/crypto-com/chainindex/usecase/coin"
 	"github.com/crypto-com/chainindex/usecase/model"
 
 	entity_event "github.com/crypto-com/chainindex/entity/event"
@@ -18,12 +17,12 @@ const MSG_EDIT_VALIDATOR_FAILED = "MsgEditValidatorFailed"
 type MsgEditValidator struct {
 	MsgBase
 
-	DelegatorAddress string    `json:"delegatorAddress"`
-	ValidatorAddress string    `json:"validatorAddress"`
-	Amount           coin.Coin `json:"amount"`
+	ValidatorAddress  string `json:"validatorAddress"`
+	CommissionRate    string `json:"commissionRate"`
+	MinSelfDelegation string `json:"minSelfDelegation"`
 }
 
-func NewMsgEditValidator(msgCommonParams MsgCommonParams, params model.MsgDelegateParams) *MsgEditValidator {
+func NewMsgEditValidator(msgCommonParams MsgCommonParams, params model.MsgEditValidatorParams) *MsgEditValidator {
 	return &MsgEditValidator{
 		NewMsgBase(MsgBaseParams{
 			MsgName:         MSG_DELEGATE,
@@ -31,9 +30,9 @@ func NewMsgEditValidator(msgCommonParams MsgCommonParams, params model.MsgDelega
 			MsgCommonParams: msgCommonParams,
 		}),
 
-		params.DelegatorAddress,
 		params.ValidatorAddress,
-		params.Amount,
+		params.CommissionRate,
+		params.MinSelfDelegation,
 	}
 }
 

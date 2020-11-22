@@ -186,17 +186,18 @@ func ParseMsgToCommands(
 				amountValue, _ := msg["amount"].(map[string]interface{})
 				amount := coin.MustNewCoinFromString(amountValue["amount"].(string))
 
-				commissionrates := model.CommissionRates{
-					Rate:          "",
-					MaxRate:       "",
-					MaxChangeRate: "",
+				commissionrates_json := msg["commission_rates"].(map[string]interface{})
+				commiossionrates := model.CommionsRates{
+					Rate:          commissionrates_json["rate"].(string),
+					MaxRate:       commissionrates_json["max_rate"].(string),
+					MaxChangeRate: commissionrates_json["max_change_rate"].(string),
 				}
 
 				commands = append(commands, command_usecase.NewCreateMsgCreateValidator(
 					msgCommonParams,
 
 					model.MsgCreateValidatorParams{
-						CommissionRates:  commissionrates,
+						CommissionRates:  commiossionrates,
 						DelegatorAddress: msg["delegator_address"].(string),
 						ValidatorAddress: msg["validator_address"].(string),
 						PubKey:           msg["pubkey"].(string),

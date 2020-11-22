@@ -197,7 +197,7 @@ func ParseMsgToCommands(
 
 					model.MsgCreateValidatorParams{
 						CommissionRates:  commissionrates,
-						DelegatorAddress: msg["validator_address"].(string),
+						DelegatorAddress: msg["delegator_address"].(string),
 						ValidatorAddress: msg["validator_address"].(string),
 						PubKey:           msg["pubkey"].(string),
 						Amount:           amount,

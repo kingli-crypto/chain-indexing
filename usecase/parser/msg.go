@@ -187,7 +187,7 @@ func ParseMsgToCommands(
 				amount := coin.MustNewCoinFromString(amountValue["amount"].(string))
 
 				commissionrates_json := msg["commission_rates"].(map[string]interface{})
-				commiossionrates := model.CommionsRates{
+				commiossionrates := model.CommissionRates{
 					Rate:          commissionrates_json["rate"].(string),
 					MaxRate:       commissionrates_json["max_rate"].(string),
 					MaxChangeRate: commissionrates_json["max_change_rate"].(string),

@@ -38,6 +38,7 @@ var _ = Describe("Event", func() {
 					Amount:           coin.MustNewCoinFromString("10"),
 				},
 			)
+
 			encoded, err := event.ToJSON()
 			Expect(err).To(BeNil())
 
@@ -46,6 +47,9 @@ var _ = Describe("Event", func() {
 			)
 			Expect(err).To(BeNil())
 			Expect(decodedEvent).To(Equal(event))
+			typedEvent, _ := decodedEvent.(*event_usecase.MsgCreateValidator)
+			Expect(typedEvent.Name()).To(Equal(event_usecase.MSG_CREATE_VALIDATOR_CREATED))
+			Expect(typedEvent.Version()).To(Equal(1))
 
 			Expect(1).To(Equal(1))
 		})

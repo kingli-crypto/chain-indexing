@@ -28,7 +28,7 @@ type MsgCreateValidator struct {
 func NewMsgCreateValidator(msgCommonParams MsgCommonParams, params model.MsgCreateValidatorParams) *MsgCreateValidator {
 	return &MsgCreateValidator{
 		NewMsgBase(MsgBaseParams{
-			MsgName:         MSG_DELEGATE,
+			MsgName:         MSG_CREATE_VALIDATOR,
 			Version:         1,
 			MsgCommonParams: msgCommonParams,
 		}),

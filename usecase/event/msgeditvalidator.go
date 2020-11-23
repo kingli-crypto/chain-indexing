@@ -25,7 +25,7 @@ type MsgEditValidator struct {
 func NewMsgEditValidator(msgCommonParams MsgCommonParams, params model.MsgEditValidatorParams) *MsgEditValidator {
 	return &MsgEditValidator{
 		NewMsgBase(MsgBaseParams{
-			MsgName:         MSG_DELEGATE,
+			MsgName:         MSG_EDIT_VALIDATOR,
 			Version:         1,
 			MsgCommonParams: msgCommonParams,
 		}),

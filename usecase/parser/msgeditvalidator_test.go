@@ -5,6 +5,9 @@ import (
 	"strings"
 
 	"github.com/crypto-com/chainindex/infrastructure/tendermint"
+	command_usecase "github.com/crypto-com/chainindex/usecase/command"
+	"github.com/crypto-com/chainindex/usecase/event"
+	"github.com/crypto-com/chainindex/usecase/model"
 	"github.com/crypto-com/chainindex/usecase/parser"
 	. "github.com/onsi/ginkgo"
 
@@ -26,9 +29,39 @@ var _ = Describe("ParseMsgCommands", func() {
 				blockResults,
 			)
 
-			fmt.Printf("########################################################\n")
-			fmt.Printf("%+v\n", cmds)
+			fmt.Println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+			for i, s := range cmds {
+				fmt.Printf("%d this_cmd Name= %s  %+v\n", i, s.Name(), s)
+			}
+
+			fmt.Println("############################################################################")
+			this_cmd := cmds[0]
+			Expect(this_cmd.Name()).To(Equal("CreateMsgEditValidator"))
+
+			fmt.Printf("%d\n", len(cmds))
+			Expect(cmds).To(HaveLen(4))
+			Expect(this_cmd).To(Equal(
+				command_usecase.NewCreateMsgEditValidator(
+					event.MsgCommonParams{
+						BlockHeight: int64(504096),
+						TxHash:      "3A570A84C89578D1659E096BE8E8EB946CEB630ED123037E0F333AA352475659",
+						TxSuccess:   true,
+						MsgIndex:    0,
+					},
+
+					model.MsgEditValidatorParams{
+
+						ValidatorAddress:  "tcrocncl1fmprm0sjy6lz9llv7rltn0v2azzwcwzvr4ufus",
+						CommissionRate:    "",
+						MinSelfDelegation: "2",
+					},
+				)))
+
 			Expect(1).To(Equal(1))
+
+			//fmt.Printf("########################################################\n")
+			//fmt.Printf("%+v\n", cmds)
+			//Expect(1).To(Equal(1))
 
 		})
 	})

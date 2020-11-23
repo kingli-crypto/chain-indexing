@@ -17,7 +17,7 @@ import (
 )
 
 var _ = Describe("ParseMsgCommands", func() {
-	Describe("MsgBeginRedelegate", func() {
+	Describe("MsgCreateValidator", func() {
 
 		It("should parse Msg commands when there is staking.MsgCreateValidator in the transaction", func() {
 			txDecoder := parser.NewTxDecoder("basetrcro")

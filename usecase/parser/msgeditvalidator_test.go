@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
-	//. "github.com/onsi/gomega"
-
 	"github.com/crypto-com/chainindex/infrastructure/tendermint"
 	"github.com/crypto-com/chainindex/usecase/parser"
+	. "github.com/onsi/ginkgo"
+
+	//. "github.com/onsi/gomega"
 	usecase_parser_test "github.com/crypto-com/chainindex/usecase/parser/test"
 )
 

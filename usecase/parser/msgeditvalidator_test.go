@@ -8,8 +8,8 @@ import (
 	"github.com/crypto-com/chainindex/usecase/parser"
 	. "github.com/onsi/ginkgo"
 
-	//. "github.com/onsi/gomega"
 	usecase_parser_test "github.com/crypto-com/chainindex/usecase/parser/test"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("ParseMsgCommands", func() {
@@ -25,7 +25,11 @@ var _ = Describe("ParseMsgCommands", func() {
 				block,
 				blockResults,
 			)
+
+			fmt.Printf("########################################################\n")
 			fmt.Printf("%+v\n", cmds)
+			Expect(1).To(Equal(1))
+
 		})
 	})
 })

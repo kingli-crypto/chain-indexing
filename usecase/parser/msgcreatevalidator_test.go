@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	. "github.com/onsi/ginkgo"
-	//. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 
 	"github.com/crypto-com/chainindex/infrastructure/tendermint"
 	"github.com/crypto-com/chainindex/usecase/parser"
@@ -26,6 +26,9 @@ var _ = Describe("ParseMsgCommands", func() {
 				blockResults,
 			)
 			fmt.Printf("%+v\n", cmds)
+			fmt.Printf("%d\n", len(cmds))
+			//Expect(cmds).To(HaveLen(5))
+			Expect(1).To(Equal(1))
 		})
 	})
 })

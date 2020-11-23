@@ -19,7 +19,7 @@ func NewCreateMsgEditValidator(msgCommonParams event.MsgCommonParams, params mod
 }
 
 func (*CreateMsgEditValidator) Name() string {
-	return "CreateMsgDelegate"
+	return "CreateMsgEditValidator"
 }
 
 func (*CreateMsgEditValidator) Version() int {

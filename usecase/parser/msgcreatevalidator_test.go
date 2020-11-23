@@ -25,9 +25,17 @@ var _ = Describe("ParseMsgCommands", func() {
 				block,
 				blockResults,
 			)
-			fmt.Printf("%+v\n", cmds)
+			fmt.Println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+			for i, s := range cmds {
+				fmt.Printf("%d this_cmd Name= %s  %+v\n", i, s.Name(), s)
+			}
+
+			fmt.Println("############################################################################")
+			this_cmd := cmds[2]
+			Expect(this_cmd.Name()).To(Equal("CreateMsgCreateValidator"))
+
 			fmt.Printf("%d\n", len(cmds))
-			//Expect(cmds).To(HaveLen(5))
+			Expect(cmds).To(HaveLen(5))
 			Expect(1).To(Equal(1))
 		})
 	})

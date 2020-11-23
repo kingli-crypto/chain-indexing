@@ -1,10 +1,11 @@
 package parser_test
 
 import (
+	"fmt"
 	"strings"
 
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	//. "github.com/onsi/gomega"
 
 	"github.com/crypto-com/chainindex/infrastructure/tendermint"
 	"github.com/crypto-com/chainindex/usecase/parser"
@@ -24,7 +25,7 @@ var _ = Describe("ParseMsgCommands", func() {
 				block,
 				blockResults,
 			)
-
+			fmt.Printf("%+v\n", cmds)
 		})
 	})
 })

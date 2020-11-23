@@ -16,8 +16,8 @@ var _ = Describe("ParseMsgCommands", func() {
 
 		It("should parse Msg commands when there is staking.MsgEditValidator in the transaction", func() {
 			txDecoder := parser.NewTxDecoder("basetrcro")
-			block, _, _ := tendermint.ParseBlockResp(strings.NewReader(usecase_parser_test.TX_MSG_BEGIN_REDELEGATE_BLOCK_RESP))
-			blockResults, _ := tendermint.ParseBlockResultsResp(strings.NewReader(usecase_parser_test.TX_MSG_BEGIN_REDELEGATE_BLOCK_RESULTS_RESP))
+			block, _, _ := tendermint.ParseBlockResp(strings.NewReader(usecase_parser_test.TX_MSG_EDIT_VALIDATOR_BLOCK_RESP))
+			blockResults, _ := tendermint.ParseBlockResultsResp(strings.NewReader(usecase_parser_test.TX_MSG_EDIT_VALIDATOR_BLOCK_RESULTS_RESP))
 
 			cmds := parser.ParseMsgToCommands(
 				txDecoder,

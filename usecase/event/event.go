@@ -27,10 +27,10 @@ func RegisterEvents(registry *event.Registry) {
 	registry.Register(MSG_FUND_COMMUNITY_POOL_FAILED, 1, DecodeMsgFundCommunityPool)
 
 	// Staking
-	registry.Register(MSG_CREATE_VALIDATOR, 1, DecodeMsgCreateValidator)
-	registry.Register(MSG_CREATE_VALIDATOR, 1, DecodeMsgCreateValidator)
-	registry.Register(MSG_EDIT_VALIDATOR, 1, DecodeMsgEditValidator)
-	registry.Register(MSG_EDIT_VALIDATOR, 1, DecodeMsgEditValidator)
+	registry.Register(MSG_CREATE_VALIDATOR_CREATED, 1, DecodeMsgCreateValidator)
+	registry.Register(MSG_CREATE_VALIDATOR_FAILED, 1, DecodeMsgCreateValidator)
+	registry.Register(MSG_EDIT_VALIDATOR_CREATED, 1, DecodeMsgEditValidator)
+	registry.Register(MSG_EDIT_VALIDATOR_FAILED, 1, DecodeMsgEditValidator)
 	registry.Register(MSG_DELEGATE_CREATED, 1, DecodeMsgDelegate)
 	registry.Register(MSG_DELEGATE_FAILED, 1, DecodeMsgDelegate)
 	registry.Register(MSG_UNDELEGATE_CREATED, 1, DecodeMsgUndelegate)

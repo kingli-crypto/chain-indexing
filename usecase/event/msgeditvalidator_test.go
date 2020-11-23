@@ -35,7 +35,7 @@ var _ = Describe("Event", func() {
 			Expect(err).To(BeNil())
 
 			decodedEvent, err := registry.DecodeByType(
-				event_usecase.MSG_EDIT_VALIDATOR, 1, []byte(encoded),
+				event_usecase.MSG_EDIT_VALIDATOR_CREATED, 1, []byte(encoded),
 			)
 			Expect(err).To(BeNil())
 			Expect(decodedEvent).To(Equal(event))

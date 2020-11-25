@@ -42,6 +42,14 @@ func (handler *StatusHandler) GetStatus(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	latestHeight, err := handler.blocksView.GetLatestHeight()
+
+	if err != nil {
+		handler.logger.Errorf("error fetching get latest height: %v", err)
+		httpapi.InternalServerError(ctx)
+		return
+	}
+
 	transactionCount, err := handler.transactionsView.Count()
 	if err != nil {
 		handler.logger.Errorf("error fetching transaction count: %v", err)
@@ -76,6 +84,7 @@ func (handler *StatusHandler) GetStatus(ctx *fasthttp.RequestCtx) {
 		TotalDelegated:   totalDelegated,
 		TotalReward:      totalReward,
 		ValiatorCount:    validatorCount,
+		LatestHeight:     latestHeight,
 	}
 
 	httpapi.Success(ctx, status)

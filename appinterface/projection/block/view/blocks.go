@@ -285,6 +285,23 @@ func (blocksView *Blocks) Count() (int64, error) {
 	return *count, nil
 }
 
+func (view *Blocks) GetLatestHeight() (int, error) {
+	sql, _, err := view.rdb.StmtBuilder.Select("MAX(height)").From(
+		"view_blocks",
+	).ToSql()
+	if err != nil {
+		return 0, fmt.Errorf("error building latest height selection sql: %v", err)
+	}
+
+	result := view.rdb.QueryRow(sql)
+	var count int
+	if err := result.Scan(&count); err != nil {
+		return 0, fmt.Errorf("error scanning latest height selection query: %v", err)
+	}
+
+	return count, nil
+}
+
 func NewRdbBlockCommittedCouncilNodeFromRaw(raw *BlockCommittedCouncilNode) *RdbBlockCommittedCouncilNode {
 	return &RdbBlockCommittedCouncilNode{
 		Address:    raw.Address,

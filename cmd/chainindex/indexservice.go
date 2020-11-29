@@ -35,8 +35,16 @@ func NewIndexService(logger applogger.Logger, rdbConn rdb.Conn, config *FileConf
 // Run function runs the polling server to index the data from Tendermint
 func (service *IndexService) Run() error {
 	service.logger.Debug("TODO: should load module accounts configuration")
-
 	txDecoder := parser.NewTxDecoder(service.baseDenom)
+
+	infoManager := NewInfoManager(
+		service.logger,
+		service.rdbConn,
+		service.tendermintHTTPRPCURL,
+	)
+	if err := infoManager.Run(); err != nil {
+		return fmt.Errorf("error running info manager %v", err)
+	}
 
 	syncManager := NewSyncManager(
 		service.logger,

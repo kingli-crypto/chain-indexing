@@ -7,6 +7,7 @@ import (
 )
 
 type RouteRegistry struct {
+	infoHandler	      *handlers.InfoHandler
 	blocksHandler      *handlers.Blocks
 	statusHandler      *handlers.StatusHandler
 	transactionHandler *handlers.Transactions
@@ -15,6 +16,7 @@ type RouteRegistry struct {
 }
 
 func NewRoutesRegistry(
+	infoHandler	      *handlers.InfoHandler,
 	blocksHandler *handlers.Blocks,
 	statusHandler *handlers.StatusHandler,
 	transactionHandler *handlers.Transactions,
@@ -22,6 +24,7 @@ func NewRoutesRegistry(
 	validatorsHandler *handlers.Validators,
 ) *RouteRegistry {
 	return &RouteRegistry{
+		infoHandler,
 		blocksHandler,
 		statusHandler,
 		transactionHandler,
@@ -46,4 +49,5 @@ func (registry *RouteRegistry) Register(server *httpapi.Server) {
 	server.GET("/api/v1/events/{id}", registry.blockEventHandler.FindById)
 	server.GET("/api/v1/validators", registry.validatorsHandler.List)
 	server.GET("/api/v1/validators/{operator_address}", registry.validatorsHandler.FindBy)
+	server.GET("/api/v1/info/latestheight", registry.infoHandler.GetLatestHeight)
 }

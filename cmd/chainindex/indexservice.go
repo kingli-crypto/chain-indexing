@@ -7,6 +7,7 @@ import (
 
 	applogger "github.com/crypto-com/chainindex/internal/logger"
 	"github.com/crypto-com/chainindex/usecase/parser"
+	"github.com/crypto-com/chainindex/infrastructure/util"
 )
 
 type IndexService struct {
@@ -35,8 +36,19 @@ func NewIndexService(logger applogger.Logger, rdbConn rdb.Conn, config *FileConf
 // Run function runs the polling server to index the data from Tendermint
 func (service *IndexService) Run() error {
 	service.logger.Debug("TODO: should load module accounts configuration")
+	util.WriteLog("a.txt", fmt.Sprintf("index service\n"))
+
 
 	txDecoder := parser.NewTxDecoder(service.baseDenom)
+
+	infoManager := NewInfoManager(
+		service.logger,
+		service.rdbConn,
+		service.tendermintHTTPRPCURL,
+	)
+	if err := infoManager.Run(); err != nil {
+		return fmt.Errorf("error running info manager %v", err)
+	}
 
 	syncManager := NewSyncManager(
 		service.logger,

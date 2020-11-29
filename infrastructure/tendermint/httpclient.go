@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
+	"io/ioutil"
 	"github.com/crypto-com/chainindex/usecase/model/genesis"
+	"encoding/json"
 
 	usecase_model "github.com/crypto-com/chainindex/usecase/model"
 )
@@ -16,6 +17,7 @@ type HTTPClient struct {
 	httpClient       *http.Client
 	tendermintRPCUrl string
 }
+ 
 
 // NewHTTPClient returns a new HTTPClient for tendermint request
 func NewHTTPClient(tendermintRPCUrl string) *HTTPClient {
@@ -28,6 +30,26 @@ func NewHTTPClient(tendermintRPCUrl string) *HTTPClient {
 		tendermintRPCUrl,
 	}
 }
+
+
+func (client *HTTPClient) Status() (*map[string]interface{}, error){
+	rawRespBody, err := client.request("status")
+	if err != nil {
+		return nil, err
+	}
+	defer rawRespBody.Close()
+
+	body, err := ioutil.ReadAll(rawRespBody)
+	jsonMap := make(map[string]interface{})
+	err = json.Unmarshal([]byte(body), &jsonMap)
+	if err != nil {
+		panic(err)
+	}
+
+
+	return &jsonMap, nil
+}
+
 
 func (client *HTTPClient) Genesis() (*genesis.Genesis, error) {
 	var err error

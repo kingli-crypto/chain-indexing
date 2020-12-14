@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/crypto-com/chain-indexing/appinterface/projection/account_message"
+	"github.com/crypto-com/chain-indexing/appinterface/projection/account"
 	"github.com/crypto-com/chain-indexing/appinterface/projection/block"
 	"github.com/crypto-com/chain-indexing/appinterface/projection/blockevent"
 	transaction "github.com/crypto-com/chain-indexing/appinterface/projection/transaction"
@@ -15,8 +16,9 @@ import (
 func initProjections(
 	logger applogger.Logger,
 	rdbConn rdb.Conn,
-	consNodeAddressPrefix string,
+	config *Config,
 ) []projection_entity.Projection {
+	var consNodeAddressPrefix = config.Blockchain.ConNodeAddressPrefix
 	return []projection_entity.Projection{
 		block.NewBlock(logger, rdbConn),
 		transaction.NewTransaction(logger, rdbConn),
@@ -26,6 +28,7 @@ func initProjections(
 		),
 		validatorstats.NewValidatorStats(logger, rdbConn),
 		account_message.NewAccountMessage(logger, rdbConn),
+		account.NewAccount(logger, rdbConn, config.CosmosApp.HTTPRPCUL, config.Blockchain.BaseDenom),
 
 		// register more projections here
 	}

@@ -11,7 +11,12 @@ import (
 )
 
 type Account struct {
+	AccountType    string `json:"accountType"`
 	AccountAddress string `json:"accountAddress"`
+	Pubkey         string `json:"pubkey"`
+	AccountNumber  int64  `json:"accountNumber"`
+	SequenceNumber int64  `json:"sequenceNumber"`
+
 	AccountBalance int64  `json:"accountBalance"`
 	AccountDenom   string `json:"accountDenom"`
 }
@@ -44,11 +49,16 @@ func (accountsView *Accounts) Upsert(account *Account) error {
 			"view_accounts",
 		).
 		Columns(
+			"AccountType",
 			"AccountAddress",
+			"Pubkey",
+			"AccountNumber",
+			"SequenceNumber",
+
 			"AccountBalance",
 			"AccountDenom",
 		).
-		Values("?", "?", "?").
+		Values("?", "?", "?", "?", "?", "?", "?").
 		Suffix("ON CONFLICT(AccountAddress) DO UPDATE SET AccountBalance = EXCLUDED.AccountBalance").
 		ToSql()
 
@@ -57,7 +67,12 @@ func (accountsView *Accounts) Upsert(account *Account) error {
 	}
 
 	result, err := accountsView.rdb.Exec(sql,
+		account.AccountType,
 		account.AccountAddress,
+		account.Pubkey,
+		account.AccountNumber,
+		account.SequenceNumber,
+
 		account.AccountBalance,
 		account.AccountDenom,
 	)

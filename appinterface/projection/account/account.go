@@ -1,10 +1,14 @@
 package account
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strconv"
 
 	account_view "github.com/crypto-com/chain-indexing/appinterface/projection/account/view"
-	usecase_coin "github.com/crypto-com/chain-indexing/usecase/coin"
 
 	"github.com/crypto-com/chain-indexing/appinterface/projection/rdbprojectionbase"
 	"github.com/crypto-com/chain-indexing/appinterface/rdb"
@@ -12,6 +16,14 @@ import (
 	applogger "github.com/crypto-com/chain-indexing/internal/logger"
 	event_usecase "github.com/crypto-com/chain-indexing/usecase/event"
 )
+
+func ConvertToInt64(s string) int64 {
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
 
 type Account struct {
 	*rdbprojectionbase.Base
@@ -76,49 +88,115 @@ func (projection *Account) HandleEvents(height int64, events []event_entity.Even
 
 func (projection *Account) handleAccountCreatedEvent(accountsView *account_view.Accounts, event *event_usecase.AccountTransferred) error {
 
-	add_err := projection.addAmount(accountsView, event.Recipient, event.Amount.ToBigInt().Int64())
-	if add_err != nil {
-		return add_err
+	recipienterr := projection.writeAccountInfo(accountsView, event.Recipient)
+	if recipienterr != nil {
+		return recipienterr
 	}
 
-	subtract_err := projection.addAmount(accountsView, event.Sender, -event.Amount.ToBigInt().Int64())
-	if subtract_err != nil {
-		return subtract_err
+	sendererr := projection.writeAccountInfo(accountsView, event.Sender)
+	if sendererr != nil {
+		return sendererr
 	}
 
 	return nil
 }
 
-func (projection *Account) addAmount(accountsView *account_view.Accounts, recipient string, amount int64) error {
-	newvalue, coinerr := usecase_coin.NewCoinFromInt(0)
-	if coinerr != nil {
-		return coinerr
-	}
-	var foundAccount account_view.Account
-	if account, err := accountsView.FindBy(&account_view.AccountIdentity{
-		MaybeAddress: recipient,
-	}); err == nil {
-		foundAccount = *account
-		oldcoin, oldcoinerr := usecase_coin.NewCoinFromInt(foundAccount.AccountBalance)
-		if oldcoinerr != nil {
-			return oldcoinerr
-		}
+func GetAccountInfo(address string) (accounttype string, accountaddress string, pubkey string, accountnumber string, sequencenumber string, err error) {
 
-		amountcoin, amountcoinerr := usecase_coin.NewCoinFromInt(amount)
-		if amountcoinerr != nil {
-			return amountcoinerr
-		}
-		newcoin, newcoinerr := oldcoin.Add(amountcoin)
-		if newcoinerr != nil {
-			return newcoinerr
-		}
-		newvalue = newcoin
+	resp, err := http.Get(fmt.Sprintf("https://testnet-croeseid-1.crypto.com:1317/cosmos/auth/v1beta1/accounts/%s", address))
+	if err != nil {
+		panic(err)
 	}
+	defer resp.Body.Close()
+	outputbytes, _ := ioutil.ReadAll(resp.Body)
+
+	var myjson map[string]interface{}
+
+	if err := json.Unmarshal(outputbytes, &myjson); err != nil {
+		panic(err)
+	}
+
+	var prettyJSON bytes.Buffer
+	json.Indent(&prettyJSON, outputbytes, "", "\t")
+
+	fmt.Println(string(prettyJSON.Bytes()))
+
+	var myaccounttype string
+	var myaddress string
+	var mypubkeycontainer map[string]interface{}
+	var mypubkey string
+	var myaccountnumber string
+	var mysequence string
+
+	myaccount := myjson["account"].(map[string]interface{})
+	myaccounttypemeta := myaccount["@type"].(string)
+	myaccounttypename, nameok := myaccount["name"].(string)
+	if !nameok {
+		myaccounttypename = ""
+	}
+	myaccounttype = fmt.Sprintf("%s %s", myaccounttypemeta, myaccounttypename)
+	mybaseaccount, mybaseaccountok := myaccount["base_account"].(map[string]interface{})
+
+	if !mybaseaccountok {
+		// normal account
+		myaddress = myaccount["address"].(string)
+		mypubkeycontainer = myaccount["pub_key"].(map[string]interface{})
+		mypubkey = mypubkeycontainer["key"].(string)
+		myaccountnumber = myaccount["account_number"].(string)
+		mysequence = myaccount["sequence"].(string)
+
+	} else {
+		// base account ok
+		myaddress = mybaseaccount["address"].(string)
+		mypubkeycontainer, _ = mybaseaccount["pub_key"].(map[string]interface{})
+		myaccountnumber = mybaseaccount["account_number"].(string)
+		mysequence = mybaseaccount["sequence"].(string)
+
+	}
+	//fmt.Println(myaddress, mypubkey, myaccountnumber, mysequence)
+
+	return myaccounttype, myaddress, mypubkey, myaccountnumber, mysequence, nil
+
+}
+
+func GetAccountBalance(address string, denom string) (retbalance string, retdenom string, err error) {
+
+	resp, err := http.Get(fmt.Sprintf("https://testnet-croeseid-1.crypto.com:1317/cosmos/bank/v1beta1/balances/%s/%s", address, denom))
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	outputbytes, _ := ioutil.ReadAll(resp.Body)
+
+	var myjson map[string]interface{}
+
+	if err := json.Unmarshal(outputbytes, &myjson); err != nil {
+		panic(err)
+	}
+
+	var prettyJSON bytes.Buffer
+	json.Indent(&prettyJSON, outputbytes, "", "\t")
+	fmt.Println(string(prettyJSON.Bytes()))
+	mybalance := myjson["balance"].(map[string]interface{})
+	myamount := mybalance["amount"].(string)
+	mydenom := mybalance["denom"].(string)
+
+	return myamount, mydenom, nil
+}
+
+func (projection *Account) writeAccountInfo(accountsView *account_view.Accounts, whichaddress string) error {
+
+	atype, aaddress, pubkey, aaccountnumber, asequenenumber, _ := GetAccountInfo(whichaddress)
+	abalance, adenom, _ := GetAccountBalance(whichaddress, "basecro")
 
 	if err := accountsView.Upsert(&account_view.Account{
-		AccountAddress: recipient,
-		AccountBalance: newvalue.ToBigInt().Int64(),
-		AccountDenom:   string("basecro"),
+		AccountType:    atype,
+		AccountAddress: aaddress,
+		Pubkey:         pubkey,
+		AccountNumber:  ConvertToInt64(aaccountnumber),
+		SequenceNumber: ConvertToInt64(asequenenumber),
+		AccountBalance: ConvertToInt64(abalance),
+		AccountDenom:   adenom,
 	}); err != nil {
 		return err
 	}

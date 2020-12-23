@@ -187,7 +187,7 @@ func GetAccountBalance(address string, denom string) (retbalance string, retdeno
 func (projection *Account) writeAccountInfo(accountsView *account_view.Accounts, whichaddress string) error {
 
 	atype, aaddress, pubkey, aaccountnumber, asequenenumber, _ := GetAccountInfo(whichaddress)
-	abalance, adenom, _ := GetAccountBalance(whichaddress, "basecro")
+	abalance, adenom, _ := GetAccountBalance(whichaddress, "basetcro")
 
 	if err := accountsView.Upsert(&account_view.Account{
 		AccountType:    atype,

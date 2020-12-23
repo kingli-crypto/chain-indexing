@@ -6,6 +6,7 @@ import (
 
 	eventhandler_interface "github.com/crypto-com/chain-indexing/appinterface/eventhandler"
 	"github.com/crypto-com/chain-indexing/appinterface/rdb"
+	myutil "github.com/crypto-com/chain-indexing/appinterface/util"
 	command_entity "github.com/crypto-com/chain-indexing/entity/command"
 	"github.com/crypto-com/chain-indexing/entity/event"
 	chainfeed "github.com/crypto-com/chain-indexing/infrastructure/feed/chain"
@@ -147,6 +148,33 @@ func (manager *SyncManager) syncBlockWorker(blockHeight int64) ([]command_entity
 	blockResults, err := manager.client.BlockResults(blockHeight)
 	if err != nil {
 		return nil, fmt.Errorf("error requesting chain block_results at height %d: %v", blockHeight, err)
+	}
+
+	if len(block.Txs) > 0 {
+		myutil.WriteFileLog("a.txt", fmt.Sprintf("block height %v  txs length %v", block.Height, len(block.Txs)))
+
+		txDecoder := parser.NewTxDecoder("basetcro")
+		for i, txHex := range block.Txs {
+			//txHash := TxHash(txHex)
+			//txsResult := blockResults.TxsResults[i]
+
+			tx, err := txDecoder.Decode(txHex)
+			if err != nil {
+				panic(fmt.Sprintf("error decoding transaction: %v", err))
+
+			}
+			var authinfo = &tx.AuthInfo
+			var signerinfos = &authinfo.SignerInfos
+			myutil.WriteFileLog("a.txt", fmt.Sprintf("index %v    tx decoded %v", i, tx))
+			for j, signerinfo := range *signerinfos {
+				var pubkey = &signerinfo.PublicKey
+				var sequence = &signerinfo.Sequence
+				myutil.WriteFileLog("a.txt", fmt.Sprintf("signer index %v    pubkey %s  sequence %s", j, pubkey, *sequence))
+
+			}
+
+		}
+
 	}
 
 	commands, err := parser.ParseBlockToCommands(

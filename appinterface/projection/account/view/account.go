@@ -6,6 +6,8 @@ import (
 
 	"github.com/crypto-com/chain-indexing/appinterface/projection/view"
 
+	sq "github.com/Masterminds/squirrel"
+	"github.com/crypto-com/chain-indexing/appinterface/pagination"
 	"github.com/crypto-com/chain-indexing/appinterface/rdb"
 	_ "github.com/crypto-com/chain-indexing/test/factory"
 )
@@ -123,4 +125,77 @@ func (accountsView *Accounts) FindBy(identity *AccountIdentity) (*Account, error
 		return nil, fmt.Errorf("error scanning account row: %v: %w", err, rdb.ErrQuery)
 	}
 	return &account, nil
+}
+
+func (accountsView *Accounts) List(order AccountsListOrder, pagination *pagination.Pagination) ([]Account, *pagination.PaginationResult, error) {
+	stmtBuilder := accountsView.rdb.StmtBuilder.Select(
+
+		"AccountType",
+		"AccountAddress",
+		"Pubkey",
+		"AccountNumber",
+		"SequenceNumber",
+
+		"AccountBalance",
+		"AccountDenom",
+	).From(
+		"view_blocks",
+	)
+
+	if order.AccountAddress == view.ORDER_DESC {
+		stmtBuilder = stmtBuilder.OrderBy("AccountAddress DESC")
+	} else {
+		stmtBuilder = stmtBuilder.OrderBy("AccountAddress")
+	}
+
+	rDbPagination := rdb.NewRDbPaginationBuilder(
+		pagination,
+		accountsView.rdb,
+	).WithCustomTotalQueryFn(
+		func(rdbHandle *rdb.Handle, _ sq.SelectBuilder) (int64, error) {
+			var total int64
+			if err := rdbHandle.QueryRow("SELECT height FROM view_blocks ORDER BY height DESC LIMIT 1").Scan(&total); err != nil {
+				return int64(0), err
+			}
+			return total, nil
+		},
+	).BuildStmt(stmtBuilder)
+	sql, sqlArgs, err := rDbPagination.ToStmtBuilder().ToSql()
+	if err != nil {
+		return nil, nil, fmt.Errorf("error building blocks select SQL: %v, %w", err, rdb.ErrBuildSQLStmt)
+	}
+
+	rowsResult, err := accountsView.rdb.Query(sql, sqlArgs...)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error executing blocks select SQL: %v: %w", err, rdb.ErrQuery)
+	}
+
+	accounts := make([]Account, 0)
+	for rowsResult.Next() {
+		var account Account
+		if err = rowsResult.Scan(
+			&account.AccountType,
+			&account.AccountAddress,
+			&account.Pubkey,
+			&account.AccountNumber,
+			&account.SequenceNumber,
+
+			&account.AccountBalance,
+			&account.AccountDenom,
+		); err != nil {
+			if errors.Is(err, rdb.ErrNoRows) {
+				return nil, nil, rdb.ErrNoRows
+			}
+			return nil, nil, fmt.Errorf("error scanning account row: %v: %w", err, rdb.ErrQuery)
+		}
+
+		accounts = append(accounts, account)
+	}
+
+	paginationResult, err := rDbPagination.Result()
+	if err != nil {
+		return nil, nil, fmt.Errorf("error preparing pagination result: %v", err)
+	}
+
+	return accounts, paginationResult, nil
 }

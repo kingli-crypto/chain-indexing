@@ -26,7 +26,7 @@ func initProjections(
 			logger, rdbConn, consNodeAddressPrefix,
 		),
 		validatorstats.NewValidatorStats(logger, rdbConn),
-		account.NewAccount(logger, rdbConn, config.CosmosApp.HTTPRPCUL),
+		account.NewAccount(logger, rdbConn, config.CosmosApp.HTTPRPCUL, config.Blockchain.BaseDenom),
 
 		// register more projections here
 	}

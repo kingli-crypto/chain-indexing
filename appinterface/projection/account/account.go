@@ -28,17 +28,19 @@ func ConvertToInt64(s string) int64 {
 type Account struct {
 	*rdbprojectionbase.Base
 
-	rdbConn rdb.Conn
-	logger  applogger.Logger
-	lcdUrl  string // cosmos light client deaemon port : 1317 (default)
+	rdbConn   rdb.Conn
+	logger    applogger.Logger
+	lcdUrl    string // cosmos light client deaemon port : 1317 (default)
+	baseDenom string // tbasecro, basecro
 }
 
-func NewAccount(logger applogger.Logger, rdbConn rdb.Conn, lcdurl string) *Account {
+func NewAccount(logger applogger.Logger, rdbConn rdb.Conn, lcdurl string, baseDenom string) *Account {
 	return &Account{
 		rdbprojectionbase.NewRDbBase(rdbConn.ToHandle(), "Account"),
 		rdbConn,
 		logger,
 		lcdurl,
+		baseDenom,
 	}
 }
 
@@ -190,7 +192,8 @@ func (projection *Account) GetAccountBalance(address string, denom string) (retb
 func (projection *Account) writeAccountInfo(accountsView *account_view.Accounts, whichaddress string) error {
 
 	atype, aaddress, pubkey, aaccountnumber, asequenenumber, _ := projection.GetAccountInfo(whichaddress)
-	abalance, adenom, _ := projection.GetAccountBalance(whichaddress, "basetcro")
+	// basetcro or basecro
+	abalance, adenom, _ := projection.GetAccountBalance(whichaddress, projection.baseDenom)
 
 	if err := accountsView.Upsert(&account_view.Account{
 		AccountType:    atype,

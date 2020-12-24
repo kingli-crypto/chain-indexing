@@ -90,7 +90,13 @@ func (accountsView *Accounts) FindBy(identity *AccountIdentity) (*Account, error
 	var err error
 
 	selectStmtBuilder := accountsView.rdb.StmtBuilder.Select(
-		"AccountAddress", "AccountBalance", "AccountDenom",
+		"AccountType",
+		"AccountAddress",
+		"Pubkey",
+		"AccountNumber",
+		"SequenceNumber",
+
+		"AccountBalance", "AccountDenom",
 	).From("view_accounts")
 
 	selectStmtBuilder = selectStmtBuilder.Where("AccountAddress = ?", identity.MaybeAddress)
@@ -102,7 +108,12 @@ func (accountsView *Accounts) FindBy(identity *AccountIdentity) (*Account, error
 
 	var account Account
 	if err = accountsView.rdb.QueryRow(sql, sqlArgs...).Scan(
+		&account.AccountType,
 		&account.AccountAddress,
+		&account.Pubkey,
+		&account.AccountNumber,
+		&account.SequenceNumber,
+
 		&account.AccountBalance,
 		&account.AccountDenom,
 	); err != nil {

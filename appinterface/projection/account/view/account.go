@@ -6,7 +6,6 @@ import (
 
 	"github.com/crypto-com/chain-indexing/appinterface/projection/view"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/crypto-com/chain-indexing/appinterface/pagination"
 	"github.com/crypto-com/chain-indexing/appinterface/rdb"
 	_ "github.com/crypto-com/chain-indexing/test/factory"
@@ -139,7 +138,7 @@ func (accountsView *Accounts) List(order AccountsListOrder, pagination *paginati
 		"AccountBalance",
 		"AccountDenom",
 	).From(
-		"view_blocks",
+		"view_accounts",
 	)
 
 	if order.AccountAddress == view.ORDER_DESC {
@@ -151,14 +150,6 @@ func (accountsView *Accounts) List(order AccountsListOrder, pagination *paginati
 	rDbPagination := rdb.NewRDbPaginationBuilder(
 		pagination,
 		accountsView.rdb,
-	).WithCustomTotalQueryFn(
-		func(rdbHandle *rdb.Handle, _ sq.SelectBuilder) (int64, error) {
-			var total int64
-			if err := rdbHandle.QueryRow("SELECT height FROM view_blocks ORDER BY height DESC LIMIT 1").Scan(&total); err != nil {
-				return int64(0), err
-			}
-			return total, nil
-		},
 	).BuildStmt(stmtBuilder)
 	sql, sqlArgs, err := rDbPagination.ToStmtBuilder().ToSql()
 	if err != nil {

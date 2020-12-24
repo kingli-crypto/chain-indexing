@@ -15,8 +15,9 @@ import (
 func initProjections(
 	logger applogger.Logger,
 	rdbConn rdb.Conn,
-	consNodeAddressPrefix string,
+	config *Config,
 ) []projection_entity.Projection {
+	var consNodeAddressPrefix = config.Blockchain.ConNodeAddressPrefix
 	return []projection_entity.Projection{
 		block.NewBlock(logger, rdbConn),
 		transaction.NewTransaction(logger, rdbConn),
@@ -25,7 +26,7 @@ func initProjections(
 			logger, rdbConn, consNodeAddressPrefix,
 		),
 		validatorstats.NewValidatorStats(logger, rdbConn),
-		account.NewAccount(logger, rdbConn),
+		account.NewAccount(logger, rdbConn, config.CosmosApp.HTTPRPCUL),
 
 		// register more projections here
 	}

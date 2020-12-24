@@ -30,14 +30,15 @@ type Account struct {
 
 	rdbConn rdb.Conn
 	logger  applogger.Logger
+	lcdUrl  string // cosmos light client deaemon port : 1317 (default)
 }
 
-func NewAccount(logger applogger.Logger, rdbConn rdb.Conn) *Account {
+func NewAccount(logger applogger.Logger, rdbConn rdb.Conn, lcdurl string) *Account {
 	return &Account{
 		rdbprojectionbase.NewRDbBase(rdbConn.ToHandle(), "Account"),
-
 		rdbConn,
 		logger,
+		lcdurl,
 	}
 }
 
@@ -101,9 +102,10 @@ func (projection *Account) handleAccountCreatedEvent(accountsView *account_view.
 	return nil
 }
 
-func GetAccountInfo(address string) (accounttype string, accountaddress string, pubkey string, accountnumber string, sequencenumber string, err error) {
+func (projection *Account) GetAccountInfo(address string) (accounttype string, accountaddress string, pubkey string, accountnumber string, sequencenumber string, err error) {
 
-	resp, err := http.Get(fmt.Sprintf("https://testnet-croeseid-1.crypto.com:1317/cosmos/auth/v1beta1/accounts/%s", address))
+	// url: https://testnet-croeseid-1.crypto.com:1317
+	resp, err := http.Get(fmt.Sprintf("%s/cosmos/auth/v1beta1/accounts/%s", projection.lcdUrl, address))
 	if err != nil {
 		panic(err)
 	}
@@ -159,9 +161,10 @@ func GetAccountInfo(address string) (accounttype string, accountaddress string, 
 
 }
 
-func GetAccountBalance(address string, denom string) (retbalance string, retdenom string, err error) {
+func (projection *Account) GetAccountBalance(address string, denom string) (retbalance string, retdenom string, err error) {
 
-	resp, err := http.Get(fmt.Sprintf("https://testnet-croeseid-1.crypto.com:1317/cosmos/bank/v1beta1/balances/%s/%s", address, denom))
+	// url : https://testnet-croeseid-1.crypto.com:1317
+	resp, err := http.Get(fmt.Sprintf("%s/cosmos/bank/v1beta1/balances/%s/%s", projection.lcdUrl, address, denom))
 	if err != nil {
 		panic(err)
 	}
@@ -186,8 +189,8 @@ func GetAccountBalance(address string, denom string) (retbalance string, retdeno
 
 func (projection *Account) writeAccountInfo(accountsView *account_view.Accounts, whichaddress string) error {
 
-	atype, aaddress, pubkey, aaccountnumber, asequenenumber, _ := GetAccountInfo(whichaddress)
-	abalance, adenom, _ := GetAccountBalance(whichaddress, "basetcro")
+	atype, aaddress, pubkey, aaccountnumber, asequenenumber, _ := projection.GetAccountInfo(whichaddress)
+	abalance, adenom, _ := projection.GetAccountBalance(whichaddress, "basetcro")
 
 	if err := accountsView.Upsert(&account_view.Account{
 		AccountType:    atype,

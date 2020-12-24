@@ -1,7 +1,6 @@
 package account
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -34,12 +33,12 @@ type Account struct {
 	baseDenom string // tbasecro, basecro
 }
 
-func NewAccount(logger applogger.Logger, rdbConn rdb.Conn, lcdurl string, baseDenom string) *Account {
+func NewAccount(logger applogger.Logger, rdbConn rdb.Conn, lcdUrl string, baseDenom string) *Account {
 	return &Account{
 		rdbprojectionbase.NewRDbBase(rdbConn.ToHandle(), "Account"),
 		rdbConn,
 		logger,
-		lcdurl,
+		lcdUrl,
 		baseDenom,
 	}
 }
@@ -104,9 +103,7 @@ func (projection *Account) handleAccountCreatedEvent(accountsView *account_view.
 	return nil
 }
 
-func (projection *Account) GetAccountInfo(address string) (accounttype string, accountaddress string, pubkey string, accountnumber string, sequencenumber string, err error) {
-
-	// url: https://testnet-croeseid-1.crypto.com:1317
+func (projection *Account) GetAccountInfo(address string) (accountType string, accountAddress string, pubkey string, accountNumber string, sequenceNumber string, err error) {
 	resp, err := http.Get(fmt.Sprintf("%s/cosmos/auth/v1beta1/accounts/%s", projection.lcdUrl, address))
 	if err != nil {
 		panic(err)
@@ -120,73 +117,61 @@ func (projection *Account) GetAccountInfo(address string) (accounttype string, a
 		panic(err)
 	}
 
-	var prettyJSON bytes.Buffer
-	json.Indent(&prettyJSON, outputbytes, "", "\t")
+	var thisAccountType string
+	var thisAddress string
+	var thisPubkeyContainer map[string]interface{}
+	var thisPubkey string
+	var thisAccountNumber string
+	var thisSequenceNumber string
 
-	fmt.Println(string(prettyJSON.Bytes()))
-
-	var myaccounttype string
-	var myaddress string
-	var mypubkeycontainer map[string]interface{}
-	var mypubkey string
-	var myaccountnumber string
-	var mysequence string
-
-	myaccount := myjson["account"].(map[string]interface{})
-	myaccounttypemeta := myaccount["@type"].(string)
-	myaccounttypename, nameok := myaccount["name"].(string)
-	if !nameok {
-		myaccounttypename = ""
+	thisAccount := myjson["account"].(map[string]interface{})
+	thisAccountTypeMeta := thisAccount["@type"].(string)
+	thisAccountTypeName, thisAccountTypeNameOk := thisAccount["name"].(string)
+	if !thisAccountTypeNameOk {
+		thisAccountTypeName = ""
 	}
-	myaccounttype = fmt.Sprintf("%s %s", myaccounttypemeta, myaccounttypename)
-	mybaseaccount, mybaseaccountok := myaccount["base_account"].(map[string]interface{})
+	thisAccountType = fmt.Sprintf("%s %s", thisAccountTypeMeta, thisAccountTypeName)
+	thisBaseAccount, thisBaseAccountOk := thisAccount["base_account"].(map[string]interface{})
 
-	if !mybaseaccountok {
+	if !thisBaseAccountOk {
 		// normal account
-		myaddress = myaccount["address"].(string)
-		mypubkeycontainer = myaccount["pub_key"].(map[string]interface{})
-		mypubkey = mypubkeycontainer["key"].(string)
-		myaccountnumber = myaccount["account_number"].(string)
-		mysequence = myaccount["sequence"].(string)
+		thisAddress = thisAccount["address"].(string)
+		thisPubkeyContainer = thisAccount["pub_key"].(map[string]interface{})
+		thisPubkey = thisPubkeyContainer["key"].(string)
+		thisAccountNumber = thisAccount["account_number"].(string)
+		thisSequenceNumber = thisAccount["sequence"].(string)
 
 	} else {
-		// base account ok
-		myaddress = mybaseaccount["address"].(string)
-		mypubkeycontainer, _ = mybaseaccount["pub_key"].(map[string]interface{})
-		myaccountnumber = mybaseaccount["account_number"].(string)
-		mysequence = mybaseaccount["sequence"].(string)
+		// module account
+		thisAddress = thisBaseAccount["address"].(string)
+		thisPubkeyContainer, _ = thisBaseAccount["pub_key"].(map[string]interface{})
+		thisAccountNumber = thisBaseAccount["account_number"].(string)
+		thisSequenceNumber = thisBaseAccount["sequence"].(string)
 
 	}
-	//fmt.Println(myaddress, mypubkey, myaccountnumber, mysequence)
-
-	return myaccounttype, myaddress, mypubkey, myaccountnumber, mysequence, nil
+	return thisAccountType, thisAddress, thisPubkey, thisAccountNumber, thisSequenceNumber, nil
 
 }
 
-func (projection *Account) GetAccountBalance(address string, denom string) (retbalance string, retdenom string, err error) {
-
-	// url : https://testnet-croeseid-1.crypto.com:1317
-	resp, err := http.Get(fmt.Sprintf("%s/cosmos/bank/v1beta1/balances/%s/%s", projection.lcdUrl, address, denom))
-	if err != nil {
-		panic(err)
+func (projection *Account) GetAccountBalance(targetAddress string, targetDenom string) (returnBalance string, returnDenom string, returnErr error) {
+	resp, returnErr := http.Get(fmt.Sprintf("%s/cosmos/bank/v1beta1/balances/%s/%s", projection.lcdUrl, targetAddress, targetDenom))
+	if returnErr != nil {
+		panic(returnErr)
 	}
 	defer resp.Body.Close()
 	outputbytes, _ := ioutil.ReadAll(resp.Body)
 
-	var myjson map[string]interface{}
+	var thisJson map[string]interface{}
 
-	if err := json.Unmarshal(outputbytes, &myjson); err != nil {
+	if err := json.Unmarshal(outputbytes, &thisJson); err != nil {
 		panic(err)
 	}
 
-	var prettyJSON bytes.Buffer
-	json.Indent(&prettyJSON, outputbytes, "", "\t")
-	fmt.Println(string(prettyJSON.Bytes()))
-	mybalance := myjson["balance"].(map[string]interface{})
-	myamount := mybalance["amount"].(string)
-	mydenom := mybalance["denom"].(string)
+	thisBalance := thisJson["balance"].(map[string]interface{})
+	thisAmount := thisBalance["amount"].(string)
+	thisDenom := thisBalance["denom"].(string)
 
-	return myamount, mydenom, nil
+	return thisAmount, thisDenom, nil
 }
 
 func (projection *Account) writeAccountInfo(accountsView *account_view.Accounts, whichaddress string) error {

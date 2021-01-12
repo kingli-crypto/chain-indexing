@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  chain-indexing:
+      build: .
+      ports:
+        - 28857:28857
+      env_file:
+        - chain-indexing.env
+      volumes:
+        - ./config/config.toml:/chain-indexing/config/config.toml

@@ -30,11 +30,11 @@ type Crossfire struct {
 	phaseTwoStartTime        utctime.UTCTime
 	phaseThreeStartTime      utctime.UTCTime
 	competitionEndTime       utctime.UTCTime
-	JackpotOneStartTime      utctime.UTCTime
-	JackpotTwoStartTime      utctime.UTCTime
-	JackpotThreeStartTime    utctime.UTCTime
-	JackpotFourStartTime     utctime.UTCTime
-	JackpotFourEndTime       utctime.UTCTime
+	jackpotOneStartTime      utctime.UTCTime
+	jackpotTwoStartTime      utctime.UTCTime
+	jackpotThreeStartTime    utctime.UTCTime
+	jackpotFourStartTime     utctime.UTCTime
+	jackpotFourEndTime       utctime.UTCTime
 	adminAddress             string
 	networkUpgradeProposalID string
 	participantsListUrl      string
@@ -55,11 +55,11 @@ func NewCrossfire(
 	adminAddress string,
 	networkUpgradeProposalID string,
 	participantsListURL string,
-	JackpotOneStartTime int64,
-	JackpotTwoStartTime int64,
-	JackpotThreeStartTime int64,
-	JackpotFourStartTime int64,
-	JackpotFourEndTime int64,
+	jackpotOneStartTime int64,
+	jackpotTwoStartTime int64,
+	jackpotThreeStartTime int64,
+	jackpotFourStartTime int64,
+	jackpotFourEndTime int64,
 ) *Crossfire {
 	return &Crossfire{
 		Base: rdbprojectionbase.NewRDbBase(rdbConn.ToHandle(), "Crossfire"),
@@ -73,11 +73,11 @@ func NewCrossfire(
 		phaseThreeStartTime:    utctime.FromUnixNano(unixPhaseThreeStartTime),
 		competitionEndTime:     utctime.FromUnixNano(unixCompetitionEndTime),
 
-		JackpotOneStartTime:   utctime.FromUnixNano(JackpotOneStartTime),
-		JackpotTwoStartTime:   utctime.FromUnixNano(JackpotTwoStartTime),
-		JackpotThreeStartTime: utctime.FromUnixNano(JackpotThreeStartTime),
-		JackpotFourStartTime:  utctime.FromUnixNano(JackpotFourStartTime),
-		JackpotFourEndTime:    utctime.FromUnixNano(JackpotFourEndTime),
+		jackpotOneStartTime:   utctime.FromUnixNano(jackpotOneStartTime),
+		jackpotTwoStartTime:   utctime.FromUnixNano(jackpotTwoStartTime),
+		jackpotThreeStartTime: utctime.FromUnixNano(jackpotThreeStartTime),
+		jackpotFourStartTime:  utctime.FromUnixNano(jackpotFourStartTime),
+		jackpotFourEndTime:    utctime.FromUnixNano(jackpotFourEndTime),
 
 		adminAddress:             adminAddress, // TODO: address prefix check
 		networkUpgradeProposalID: networkUpgradeProposalID,
@@ -552,18 +552,18 @@ func (projection *Crossfire) updateTxSentCount(
 		phaseNumberPrefix = constants.PHASE_3_TX_SENT_PREFIX
 	}
 
-	if blockTime.After(projection.JackpotOneStartTime) && blockTime.Before(projection.JackpotTwoStartTime) {
+	if blockTime.After(projection.jackpotOneStartTime) && blockTime.Before(projection.jackpotTwoStartTime) {
 		//Jackpot Week 1
 		weeklyJackpotDBKey = constants.JACKPOT_1_TX_SENT_PREFIX
-	} else if blockTime.After(projection.JackpotTwoStartTime) && blockTime.Before(projection.JackpotThreeStartTime) {
+	} else if blockTime.After(projection.jackpotTwoStartTime) && blockTime.Before(projection.jackpotThreeStartTime) {
 		//Jackpot Week 2
 		weeklyJackpotDBKey = constants.JACKPOT_2_TX_SENT_PREFIX
 
-	} else if blockTime.After(projection.JackpotThreeStartTime) && blockTime.Before(projection.JackpotFourStartTime) {
+	} else if blockTime.After(projection.jackpotThreeStartTime) && blockTime.Before(projection.jackpotFourStartTime) {
 		//Jackpot Week 3
 		weeklyJackpotDBKey = constants.JACKPOT_3_TX_SENT_PREFIX
 
-	} else if blockTime.After(projection.JackpotFourStartTime) && blockTime.Before(projection.JackpotFourEndTime) {
+	} else if blockTime.After(projection.jackpotFourStartTime) && blockTime.Before(projection.jackpotFourEndTime) {
 		//Jackpot Week 4
 		weeklyJackpotDBKey = constants.JACKPOT_4_TX_SENT_PREFIX
 	}

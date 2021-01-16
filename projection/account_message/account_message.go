@@ -384,7 +384,7 @@ func (projection *AccountMessage) HandleEvents(height int64, events []event_enti
 		}
 
 		if err := accountMessagesView.Insert(&accountMessages[i].Row, deduplicatedAccounts); err != nil {
-			return fmt.Errorf("error inserting account message: %w", err)
+			return fmt.Errorf("error inserting account message %v: %w", deduplicatedAccounts, err)
 		}
 	}
 

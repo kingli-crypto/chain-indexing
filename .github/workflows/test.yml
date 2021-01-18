@@ -1,4 +1,4 @@
-name: deploy
+name: Continuous Integration
 
 on: [push, pull_request]
 
@@ -7,50 +7,61 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-    - name: Install dependency
-      run: |
-        sudo apt update -y
-        sudo apt install build-essential -y
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '1.14'
-    - name: Install golangci-lint
-      run: |
-        # binary will be $(go env GOPATH)/bin/golangci-lint
-        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.33.0
-    - name: Env
-      run: |
-        go version
-        golangci-lint --version
-    - uses: actions/checkout@v2
-    - name: Run check linting
-      run: GOLANGCI_LINT_PATH="$(go env GOPATH)/bin/golangci-lint" ./lint.sh
+      - name: Install dependency
+        run: |
+          sudo apt update -y
+          sudo apt install build-essential -y
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "1.14"
+      - name: Install golangci-lint
+        run: |
+          # binary will be $(go env GOPATH)/bin/golangci-lint
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.33.0
+      - name: Env
+        run: |
+          go version
+          golangci-lint --version
+      - uses: actions/checkout@v2
+      - name: Run check linting
+        run: GOLANGCI_LINT_PATH="$(go env GOPATH)/bin/golangci-lint" ./lint.sh
 
   test:
     name: Test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/setup-go@v2
-      with:
-        go-version: '1.14'
-    - name: Env
-      run: |
-        go version
-        cargo --version
-        rustc --version
-    - uses: actions/checkout@v2
-    - name: Run test cases
-      run: ./test.sh run --install-dependency
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "1.14"
+      - name: Env
+        run: |
+          go version
+          cargo --version
+          rustc --version
+      - uses: actions/checkout@v2
+      - name: Run test cases
+        run: ./test.sh run --install-dependency
 
-  # build:
-  #   name: Test Building Docker Image
-  #   runs-on: ubuntu-latest
-  #   needs: ["lint", "test"]
-  #   steps:
-  #   - name: Env
-  #     run: |
-  #       docker version
-  #   - uses: actions/checkout@v2
-  #   - name: Build Docker Image
-  #     run: |
-  #       docker build .
+  build:
+    name: Test Building Docker Image
+    runs-on: ubuntu-latest
+    needs: ["lint", "test"]
+    steps:
+      - uses: FranzDiebold/github-env-vars-action@v2
+      - uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GitHub Packages Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ env.CI_REPOSITORY }}:${{ env.CI_SHA_SHORT }}
+            ghcr.io/${{ env.CI_REPOSITORY }}:latest
